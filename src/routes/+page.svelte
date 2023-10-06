@@ -18,7 +18,7 @@
 		ctx: CanvasRenderingContext2D,
 		text: string
 	): TextMetrics & { height: number } {
-		let temp_metrics: any = ctx.measureText(text);
+		let temp_metrics = ctx.measureText(text) as TextMetrics & { height: number };
 		temp_metrics.height =
 			temp_metrics.actualBoundingBoxAscent + temp_metrics.actualBoundingBoxDescent;
 
@@ -76,8 +76,8 @@
 
 		if (ctx !== null) {
 			if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-				canvas.width = canvas.clientWidth * window.devicePixelRatio;
-				canvas.height = canvas.clientHeight * window.devicePixelRatio;
+				canvas.width = canvas.clientWidth;
+				canvas.height = canvas.clientHeight;
 
 				console.debug(`Canvas width: ${canvas.clientWidth}px, height: ${canvas.clientHeight}px`);
 			}
