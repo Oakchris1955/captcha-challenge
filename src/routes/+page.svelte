@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
+	let guesses = {
+		correct: 0,
+		wrong: 0,
+		skipped: 0
+	};
+
 	let canvas: HTMLCanvasElement;
 	let displayedString = randomString();
-	let inputString: string;
+	let inputString: string = '';
 
 	const maxInitialOffset = 25;
 	const maxVerticalChange = 20;
@@ -93,12 +99,21 @@
 	});
 </script>
 
+<div id="counterContainer" class="column">
+	<div>
+		<div class="left">Correct guesses: {guesses.correct}</div>
+		<div class="right">Wrong guesses: {guesses.wrong}</div>
+	</div>
+	Skipped: {guesses.skipped}
+</div>
+
 <div id="canvasContainer">
 	<canvas bind:this={canvas} />
 
 	<button
 		id="regenerateButton"
 		on:click={() => {
+			guesses.skipped += 1;
 			displayedString = randomString();
 			loadCanvas();
 		}}
@@ -117,10 +132,18 @@
 	on:submit={(e) => {
 		e.preventDefault();
 
-		if (inputString.trim() === displayedString) {
-			alert('Correct');
-		} else {
-			alert('Not correct');
+		let trimmedInputString = inputString.trim();
+
+		if (trimmedInputString.length !== 0) {
+			if (trimmedInputString === displayedString) {
+				guesses.correct += 1;
+			} else {
+				guesses.wrong += 1;
+			}
+
+			inputString = '';
+			displayedString = randomString();
+			loadCanvas();
 		}
 	}}
 >
@@ -145,7 +168,7 @@
 	}
 
 	:global(body) {
-		background-color: black;
+		background-color: rgb(22, 29, 59);
 		color: white;
 	}
 
@@ -166,6 +189,20 @@
 		gap: 1%;
 	}
 
+	.column {
+		flex-direction: column;
+	}
+
+	.left {
+		align-self: flex-start;
+		text-align: left;
+	}
+
+	.right {
+		align-self: flex-end;
+		text-align: right;
+	}
+
 	canvas {
 		aspect-ratio: 3/1;
 		image-rendering: pixelated;
@@ -174,16 +211,27 @@
 		background-color: white;
 	}
 
+	#counterContainer {
+		width: 300px;
+		justify-content: space-between;
+		gap: 5px;
+	}
+
+	#counterContainer * {
+		width: 100%;
+	}
+
 	#reloadIcon {
 		height: 70%;
 	}
 
 	#regenerateButton {
-		background-color: transparent;
+		background-color: rgb(23, 45, 87);
 
 		height: 100%;
 		aspect-ratio: 1/1;
 		border: 0;
+		border-top-right-radius: 20px;
 
 		font-family: Lucida Sans Unicode;
 	}
