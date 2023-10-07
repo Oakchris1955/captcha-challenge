@@ -100,7 +100,10 @@
 
 			drawObfuscatedText(ctx, displayedString);
 
-			console.debug(`Displayed text: ${displayedString}`);
+			// Print canvas text to console only in dev mode (https://stackoverflow.com/a/71601719/)
+			if (import.meta.env.DEV) {
+				console.debug(`Displayed text: ${displayedString}`);
+			}
 		}
 	}
 
@@ -139,6 +142,7 @@
 		on:click={() => {
 			if ($guesses !== undefined) {
 				$guesses.skipped += 1;
+				inputString = '';
 				displayedString = randomString();
 				loadCanvas();
 			}
