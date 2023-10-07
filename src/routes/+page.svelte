@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Writable } from 'svelte/store';
+	import { writable } from 'svelte/store';
 
-	let guesses = {
-		correct: 0,
-		wrong: 0,
-		skipped: 0
-	};
+	interface Guesses {
+		correct: number;
+		wrong: number;
+		skipped: number;
+	}
+
+	let guesses: Writable<Guesses | undefined> = writable();
+
+	guesses.subscribe((value) => {
+		if (value !== undefined) {
+			window.localStorage.setItem('guesses', JSON.stringify(value));
+		}
+	});
 
 	let canvas: HTMLCanvasElement;
 	let displayedString = randomString();
@@ -94,17 +104,31 @@
 		}
 	}
 
+	/** Load guess stats from `localStorage` */
+	function loadGuessStats() {
+		let localGuesses = JSON.parse(window.localStorage.getItem('guesses') ?? '{}');
+
+		$guesses = {
+			correct: +localGuesses.correct || 0,
+			wrong: +localGuesses.wrong || 0,
+			skipped: +localGuesses.skipped || 0
+		};
+	}
+
 	onMount(() => {
+		loadGuessStats();
 		loadCanvas();
 	});
 </script>
 
+<!-- Wait for "guesses" object variable to be initialized before displaying this -->
 <div id="counterContainer" class="column">
 	<div>
-		<div class="left">Correct guesses: {guesses.correct}</div>
-		<div class="right">Wrong guesses: {guesses.wrong}</div>
+		<div class="left">Correct guesses: {$guesses?.correct ?? ''}</div>
+		<div class="right">Wrong guesses: {$guesses?.wrong ?? ''}</div>
 	</div>
-	Skipped: {guesses.skipped}
+
+	Skipped: {$guesses?.skipped ?? ''}
 </div>
 
 <div id="canvasContainer">
@@ -113,9 +137,11 @@
 	<button
 		id="regenerateButton"
 		on:click={() => {
-			guesses.skipped += 1;
-			displayedString = randomString();
-			loadCanvas();
+			if ($guesses !== undefined) {
+				$guesses.skipped += 1;
+				displayedString = randomString();
+				loadCanvas();
+			}
 		}}
 	>
 		<svg xmlns="http://www.w3.org/2000/svg" id="reloadIcon" viewBox="0 0 512 512"
@@ -132,18 +158,20 @@
 	on:submit={(e) => {
 		e.preventDefault();
 
-		let trimmedInputString = inputString.trim();
+		if ($guesses !== undefined) {
+			let trimmedInputString = inputString.trim();
 
-		if (trimmedInputString.length !== 0) {
-			if (trimmedInputString === displayedString) {
-				guesses.correct += 1;
-			} else {
-				guesses.wrong += 1;
+			if (trimmedInputString.length !== 0) {
+				if (trimmedInputString === displayedString) {
+					$guesses.correct += 1;
+				} else {
+					$guesses.wrong += 1;
+				}
+
+				inputString = '';
+				displayedString = randomString();
+				loadCanvas();
 			}
-
-			inputString = '';
-			displayedString = randomString();
-			loadCanvas();
 		}
 	}}
 >
