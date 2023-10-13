@@ -23,7 +23,7 @@
 	let displayedString = randomString();
 	let inputString: string = '';
 
-	const maxInitialOffset = 25;
+	const maxInitialOffset = 35;
 	const maxVerticalChange = 20;
 	const maxLetterAngle = 45;
 	const minLetterAngle = 15;
@@ -72,6 +72,16 @@
 		ctx.fillStyle = 'black';
 		ctx.font = `${canvas.width / 6}px serif`;
 
+		// Distort the canvas
+		ctx.setTransform(
+			1,
+			0,
+			Math.max(0.25, Math.random() - 0.5) * (Math.random() < 0.5 ? 1 : -1),
+			1,
+			0,
+			Math.max(0.25, Math.random() - 0.5) * (Math.random() < 0.5 ? 1 : -1)
+		);
+
 		let width_offset = Math.random() * maxInitialOffset;
 		for (const char of text) {
 			width_offset += measureMetrics(ctx, char).width * Math.max(Math.random() * 1.5, 0.75);
@@ -87,6 +97,26 @@
 				)
 			);
 		}
+
+		// Draw a Bézier curve in the canvas (may or may not be drawn over text)
+		ctx.beginPath();
+		ctx.moveTo(
+			(canvas.width / 3) * Math.random(),
+			Math.max(canvas.height / 3, (canvas.height / 2) * Math.random())
+		);
+		ctx.bezierCurveTo(
+			canvas.width * Math.random(),
+			canvas.height * Math.random(),
+			canvas.width * Math.random(),
+			canvas.height * Math.random(),
+			(canvas.width / 4) * Math.max(3, 4 * Math.random()),
+			(canvas.height / 4) * Math.max(3, 4 * Math.random())
+		);
+		ctx.lineWidth = 2;
+		ctx.stroke();
+
+		// Remove distortion effect from future canvas actions (doesn't impact what has already been drawn)
+		ctx.resetTransform();
 	}
 
 	function loadCanvas() {
